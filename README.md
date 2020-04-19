@@ -51,10 +51,13 @@ Subsequently you can call `Menu#close();` to close the menu for the player if ne
 Adding items to a menu is simple, it can be done dynamically at runtime or by default. Take the previous example menu.
 ```java
 import com.sagan.pluto.menu.Menu;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class ExampleMenu extends Menu {
-    
+        
+    private MenuItem whackamole = new MenuItem(new ItemStack(Material.SEA_PICKLE), 10);
+
     public ExampleMenu(Player player) {
         super(6, "My Test Menu", player);
         
@@ -63,6 +66,10 @@ public class ExampleMenu extends Menu {
 
         // An item with a function
         super.addMenuItem(new MenuItem(new ItemStack(Material.COMPASS), 1, viewer -> viewer.sendMessage("hello!")));
+        
+        // Item will disappear when clicked
+        whackamole.setOnClickFunction(player -> this.removeItem(whackamole.getSlot()));
+        super.addMenuItem(whackamole);
     }
 }
 ```
