@@ -25,7 +25,7 @@ public abstract class Menu {
     /** a list of all the currently open menus */
     public static List<Menu> currentlyOpen = new ArrayList<>();
 
-    public Map<Integer, Set<SlotFlag>> slotFlags = new HashMap<>();
+    private Map<Integer, Set<SlotFlag>> slotFlags = new HashMap<>();
 
     /** the default filler item used, can be overridden */
     private ItemStack filler = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
@@ -52,7 +52,7 @@ public abstract class Menu {
      * @param title The title for the inventory
      * @param player The player who's viewing this inventory
      */
-    private Menu(int rows, String title, Player player) {
+    public Menu(int rows, String title, Player player) {
         this.rows = (rows > 6 || rows < 1) ? 6 : rows;
         this.viewer = player;
         this.items = new ArrayList<>();
