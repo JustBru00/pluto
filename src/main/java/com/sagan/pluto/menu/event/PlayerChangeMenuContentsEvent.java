@@ -3,18 +3,15 @@ package com.sagan.pluto.menu.event;
 import com.sagan.pluto.menu.Menu;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @author cam (sagan/y0op)
  */
-public class PlayerChangeMenuContentsEvent extends PlayerEvent {
+public class PlayerChangeMenuContentsEvent extends MenuEvent {
 
     private static final HandlerList HANDLERS = new HandlerList();
 
-    /** The menu who's contents were changed */
-    private Menu menu;
     /** The specific item that was added or removed */
     private ItemStack item;
     /** The slot the item was added to or removed from */
@@ -23,9 +20,8 @@ public class PlayerChangeMenuContentsEvent extends PlayerEvent {
     private ChangeType changeType;
 
     public PlayerChangeMenuContentsEvent(Player who, Menu menu, ItemStack item, int slot, ChangeType type) {
-        super(who);
+        super(who, menu);
 
-        this.menu = menu;
         this.item = item;
         this.slot = slot;
         this.changeType = type;
@@ -50,13 +46,6 @@ public class PlayerChangeMenuContentsEvent extends PlayerEvent {
      */
     public ItemStack getItem() {
         return item;
-    }
-
-    /**
-     * @return The menu who's contents were changed
-     */
-    public Menu getMenu() {
-        return menu;
     }
 
     @Override

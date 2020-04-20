@@ -3,3 +3,6 @@ version: ${project.version}
 main: com.sagan.pluto.Pluto
 api-version: 1.13
 description: A command library for spigot plugins
+
+commands:
+  test:

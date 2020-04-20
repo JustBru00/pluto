@@ -1,10 +1,12 @@
 package com.sagan.pluto.menu;
 
+import com.sagan.pluto.Pluto;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,9 +23,6 @@ import java.util.stream.Collectors;
  * @author cam (sagan/y0op)
  */
 public abstract class Menu {
-
-    /** a list of all the currently open menus */
-    public static List<Menu> currentlyOpen = new ArrayList<>();
 
     private Map<Integer, Set<SlotFlag>> slotFlags = new HashMap<>();
 
@@ -50,11 +49,9 @@ public abstract class Menu {
      *
      * @param rows The amount of rows this menu will have
      * @param title The title for the inventory
-     * @param player The player who's viewing this inventory
      */
-    public Menu(int rows, String title, Player player) {
+    public Menu(int rows, String title) {
         this.rows = (rows > 6 || rows < 1) ? 6 : rows;
-        this.viewer = player;
         this.items = new ArrayList<>();
 
         this.inventory = Bukkit.createInventory(null, rows * 9, title);
@@ -95,8 +92,14 @@ public abstract class Menu {
      * @param flags The flag to add
      */
     public final void addSlotFlag(int slot, SlotFlag... flags) {
-        if (this.slotFlags.containsKey(slot) && slot <= (this.rows * 9)) {
-            Collections.addAll(this.slotFlags.get(slot), flags);
+
+        if (slot <= (this.rows * 9) || slot >= 0) {
+
+            if (!this.slotFlags.containsKey(slot)) {
+                this.slotFlags.put(slot, new HashSet<>());
+            }
+
+            this.slotFlags.get(slot).addAll(Arrays.asList(flags));
         }
     }
 
@@ -149,7 +152,7 @@ public abstract class Menu {
      * @param flags The flag(s) to add
      */
     public final void setSlotFlags(int slot, SlotFlag... flags) {
-        if (slot <= (this.rows * 9)) {
+        if (slot < (this.rows * 9) && slot >= 0) {
             this.slotFlags.put(slot, Arrays.stream(flags).collect(Collectors.toSet()));
         }
     }
@@ -164,6 +167,7 @@ public abstract class Menu {
         // The only check happening is to make sure the requested slot is not out of bounds
         Arrays.stream(menuItems).filter(menuItem -> menuItem.getSlot() < (this.rows * 9) && menuItem.getSlot() >= 0).forEach(menuItem -> {
             this.items.add(menuItem);
+            this.getItem(menuItem.getSlot()).ifPresent(old -> this.items.remove(old));
             this.inventory.setItem(menuItem.getSlot(), menuItem.getItem());
         });
     }
@@ -219,6 +223,7 @@ public abstract class Menu {
      */
     public final void removeItem(int slot) {
         if (slot <= (this.rows * 9) && slot >= 0) {
+            this.getItem(slot).ifPresent(menuItem -> this.items.remove(menuItem));
             this.inventory.setItem(slot, null);
         }
     }
@@ -255,25 +260,29 @@ public abstract class Menu {
     }
 
     /** Registers and opens the inventory to the player */
-    public void open() {
-        currentlyOpen.add(this);
+    public void open(Player player) {
+        Pluto.currentlyOpen.add(this);
+        this.viewer = player;
         redraw();
     }
 
-    /** Unregisters and closes the inventory for the player. An inventory cannot be reopened once closed. An new one must be made */
+    /**
+     * Unregisters and closes the inventory for the player. */
     public void close() {
-        if (currentlyOpen.contains(this)) {
+        if (Pluto.currentlyOpen.contains(this)) {
             this.viewer.closeInventory();
-            currentlyOpen.remove(this);
+            Pluto.currentlyOpen.remove(this);
         }
+    }
+
+    public final void unRegister() {
+        Pluto.currentlyOpen.remove(this);
     }
 
     /** Redraws the inventory, updates it. */
     public void redraw() {
 
-        if (!currentlyOpen.contains(this)) return;
-
-        this.viewer.closeInventory();
+        if (!Pluto.currentlyOpen.contains(this)) return;
 
         // Set all slots to items
         this.items.forEach(menuItem -> {
@@ -289,7 +298,12 @@ public abstract class Menu {
             }
         });
 
-        this.viewer.openInventory(this.inventory);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                viewer.openInventory(inventory);
+            }
+        }.runTaskLater(Pluto.getInstance(), 2);
     }
 
     /**
@@ -299,7 +313,7 @@ public abstract class Menu {
      * @return An optional of the player's currently open menu if they have one or empty if not.
      */
     public static Optional<Menu> getOpenMenu(Player player) {
-        for (Menu menu : currentlyOpen) {
+        for (Menu menu : Pluto.currentlyOpen) {
             if (menu.getViewer().equals(player)) {
                 return Optional.of(menu);
             }

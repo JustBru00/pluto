@@ -1,5 +1,6 @@
 package com.sagan.pluto.menu;
 
+import com.sagan.pluto.Pluto;
 import com.sagan.pluto.menu.event.PlayerChangeMenuContentsEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,16 +19,12 @@ public class MenuListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        Menu.currentlyOpen.forEach(menu -> {
-            if (menu.getViewer().equals(event.getPlayer())) {
-                menu.close();
-            }
-        });
+        Menu.getOpenMenu((Player) event.getPlayer()).ifPresent(Menu::unRegister);
     }
 
     @EventHandler
     public void onDropItem(PlayerDropItemEvent event) {
-        Menu.currentlyOpen.forEach(menu -> {
+        Pluto.currentlyOpen.forEach(menu -> {
             if (menu.getViewer().equals(event.getPlayer())) {
                 event.setCancelled(true);
             }
@@ -49,6 +46,11 @@ public class MenuListener implements Listener {
         }
 
         Menu menu = menuOptional.get();
+
+        // If they're clicking in their own inventory, ignore it
+        if (event.getSlot() >= (menu.getRows() * 9)) {
+            return;
+        }
 
         switch (event.getAction()) {
             case DROP_ALL_SLOT:
