@@ -19,7 +19,7 @@ public class MenuListener implements Listener {
 
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
-        Menu.getOpenMenu((Player) event.getPlayer()).ifPresent(Menu::unRegister);
+        Menu.getOpenMenu((Player) event.getPlayer()).ifPresent(Menu::close);
     }
 
     @EventHandler

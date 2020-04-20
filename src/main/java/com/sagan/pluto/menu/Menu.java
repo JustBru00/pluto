@@ -240,11 +240,21 @@ public abstract class Menu {
 
     /**
      * Will fill only the passed in slots so long as the passed in slots do not already contain items in them.
+     * This will overwrite any slots scheduled for filling
      *
      * @param fillSlots The slot numbers to fill with filler (slots with items are exempted by default)
      */
     public final void fillOnly(Integer... fillSlots) {
         this.rawFill = Arrays.asList(fillSlots);
+    }
+
+    /**
+     * Will fill those specific slots, adding them to the slots that need to be filled, not overwriting any current ones.
+     *
+     * @param fillSlots The slots to add to fill.
+     */
+    public final void addFill(Integer... fillSlots) {
+        this.rawFill.addAll(Arrays.asList(fillSlots));
     }
 
     /** Fills all slots in the menu that are not already taken by an item */
@@ -270,13 +280,9 @@ public abstract class Menu {
      * Unregisters and closes the inventory for the player. */
     public void close() {
         if (Pluto.currentlyOpen.contains(this)) {
-            this.viewer.closeInventory();
             Pluto.currentlyOpen.remove(this);
+            this.viewer.closeInventory();
         }
-    }
-
-    public final void unRegister() {
-        Pluto.currentlyOpen.remove(this);
     }
 
     /** Redraws the inventory, updates it. */
@@ -292,6 +298,7 @@ public abstract class Menu {
         });
 
         // Set all filler
+        System.out.println(rawFill.size());
         this.rawFill.forEach(integer -> {
             if (this.inventory.getItem(integer) == null) {
                 this.inventory.setItem(integer, filler);
